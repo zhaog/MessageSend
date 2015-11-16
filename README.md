@@ -6,6 +6,10 @@
 
 代码只是一个雏形，需要完善的还很多，总的来说，学习价值大一些，生产项目一般个性化需求多一些，因此不太适合在生产项目里使用。不过可以非常容易的对 lib 修改后使用。
 
+## Thanks
+[Grant](https://github.com/anthonycr/Grant) Simplifying Android Permissions, I used it to grant permissions in Android 6.0 easily.
+
+
 执行效果：
 
 ![](https://github.com/liangzhitao/MessageSend/blob/master/MessageSendView.gif)
