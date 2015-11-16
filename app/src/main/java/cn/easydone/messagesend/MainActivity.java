@@ -1,14 +1,22 @@
 package cn.easydone.messagesend;
 
+import android.Manifest;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.anthonycr.grant.PermissionsManager;
+import com.anthonycr.grant.PermissionsResultAction;
+
+import java.util.Locale;
 
 import cn.easydone.messagesendview.Constans;
 import cn.easydone.messagesendview.KeyboardStateLayout;
@@ -18,6 +26,7 @@ import cn.easydone.messagesendview.RecordVoiceView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     private RecordVoiceView recordVoiceView;
     private MessageSendView messageSendView;
     private long voiceLength;
@@ -28,6 +37,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        PermissionsManager.getInstance().requestAllManifestPermissionsIfNecessary(this, new PermissionsResultAction() {
+            @Override
+            public void onGranted() {
+                Toast.makeText(MainActivity.this, R.string.message_granted, Toast.LENGTH_SHORT).show();
+                recordAudio();
+            }
+
+
+            @Override
+            public void onDenied(String permission) {
+                String message = String.format(Locale.getDefault(), getString(R.string.message_denied), permission);
+                Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         KeyboardStateLayout rootView = (KeyboardStateLayout) findViewById(R.id.rootView);
@@ -76,11 +102,49 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        recordAudio();
+
+        ImageView takePhotoView = (ImageView) explandableView.findViewById(R.id.chat_editor_more_camera);
+        takePhotoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickImageWithCamera();
+            }
+        });
+
+        ImageView pickImageView = (ImageView) explandableView.findViewById(R.id.chat_editor_more_gallary);
+        pickImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pickImageSingleFromGallery();
+            }
+        });
+    }
+
+    private void recordAudio() {
         messageSendView.setOnRecordListener(new MessageSendView.OnRecordVoiceListener() {
             @Override
             public void onStart(MessageSendView view) {
-                recordVoiceView.setVisibility(View.VISIBLE);
-                recordVoiceView.setState(false);
+                PermissionsManager.getInstance().requestPermissionsIfNecessaryForResult(MainActivity.this,
+                        new String[]{
+                                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                                Manifest.permission.RECORD_AUDIO
+                        }, new PermissionsResultAction() {
+                            @Override
+                            public void onGranted() {
+                                Log.i(TAG, "onGranted");
+                                recordVoiceView.setVisibility(View.VISIBLE);
+                                recordVoiceView.setState(false);
+                            }
+
+                            @Override
+                            public void onDenied(String permission) {
+                                Log.i(TAG, "onDenied: " + permission);
+                                String message = String.format(Locale.getDefault(), getString(R.string.message_denied), permission);
+                                Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                );
             }
 
             @Override
@@ -106,22 +170,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void willCancel(boolean willCancel) {
                 recordVoiceView.setState(willCancel);
-            }
-        });
-
-        View takePhotoView = explandableView.findViewById(R.id.chat_editor_more_camera);
-        takePhotoView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pickImageWithCamera();
-            }
-        });
-
-        View pickImageView = explandableView.findViewById(R.id.chat_editor_more_gallary);
-        pickImageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                pickImageSingleFromGallery();
             }
         });
     }
