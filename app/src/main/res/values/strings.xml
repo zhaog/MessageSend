@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">MessageSend</string>
     <string name="action_settings">Settings</string>
+
+    <string name="message_granted">All permissions have been granted.</string>
+    <string name="message_denied">Permission \"%1$s\" has been denied.</string>
 </resources>
